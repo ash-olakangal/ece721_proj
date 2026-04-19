@@ -151,6 +151,13 @@ void pipeline_t::rename2() {
 	}
       // FIX_ME #3 END
 
+	//aolakan
+	PAY.buf[index].vp_eligible   = eligible(&PAY.buf[index]);
+	PAY.buf[index].vp_pred_avail = false;
+	PAY.buf[index].vp_confident  = false;
+	PAY.buf[index].vp_used       = false;
+	PAY.buf[index].vp_value.dw   = 0;
+
       // FIX_ME #4
       // Get the instruction's branch mask.
       //

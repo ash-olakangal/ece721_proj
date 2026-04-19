@@ -72,11 +72,19 @@ void pipeline_t::execute(unsigned int lane_number) {
             // that the instruction does not have a destination register. You don't have to decode the instruction, rather, just
             // check the existence (validity) of a destination register.
 
+	    //aolakan - addition of value prediction condition
             // FIX_ME #13 BEGIN
+	    //if (hit && PAY.buf[index].C_valid) {
+  	    //     IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+  	    //     REN->set_ready(PAY.buf[index].C_phys_reg);
+  	    //     REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	    //}
 	    if (hit && PAY.buf[index].C_valid) {
-  		 IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
-  		 REN->set_ready(PAY.buf[index].C_phys_reg);
-  		 REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	      if (!PAY.buf[index].vp_used) {
+	         IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+	         REN->set_ready(PAY.buf[index].C_phys_reg);
+	      }
+	      REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
 	    }
             // FIX_ME #13 END
          }
@@ -190,8 +198,9 @@ void pipeline_t::execute(unsigned int lane_number) {
          //       note that you are only coding a register-dependency wakeup, so pass in "true" (no quotes) for the second argument).
          //    b. Set the destination register's ready bit.
 
+	 //aolakan - addition of value prediction condition
          // FIX_ME #11b BEGIN
-	 if (PAY.buf[index].C_valid && !IS_LOAD(PAY.buf[index].flags) && !IS_AMO(PAY.buf[index].flags)) {
+	 if (PAY.buf[index].C_valid && !IS_LOAD(PAY.buf[index].flags) && !IS_AMO(PAY.buf[index].flags) && !PAY.buf[index].vp_used) {
    	 IQ.wakeup(PAY.buf[index].C_phys_reg, true);
    	 REN->set_ready(PAY.buf[index].C_phys_reg);
 	 }
@@ -248,9 +257,18 @@ void pipeline_t::load_replay() {
          // 2. See #13 (in execute.cc), and implement steps 3a,3b,3c.
 
          // FIX_ME #18a BEGIN
-	 IQ.wakeup(PAY.buf[index].C_phys_reg, true);
-	 REN->set_ready(PAY.buf[index].C_phys_reg);
+	 //aolakan - addition of value prediction condition
+
+	 //IQ.wakeup(PAY.buf[index].C_phys_reg, true);
+	 //REN->set_ready(PAY.buf[index].C_phys_reg);
+	 //REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+
+	 if (!PAY.buf[index].vp_used) {
+	    IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+	    REN->set_ready(PAY.buf[index].C_phys_reg);
+	 }
 	 REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+
          // FIX_ME #18a END
       }
 

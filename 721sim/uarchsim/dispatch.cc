@@ -187,9 +187,25 @@ void pipeline_t::dispatch() {
       // 2. If the instruction has a destination register, then clear its ready bit; otherwise do nothing.
 
       // FIX_ME #9 BEGIN
-      if (PAY.buf[index].C_valid) {
-       REN->clear_ready(PAY.buf[index].C_phys_reg);
-      }
+      //if (PAY.buf[index].C_valid) {
+      // REN->clear_ready(PAY.buf[index].C_phys_reg);
+      //}
+
+      //aolakan
+        if (PAY.buf[index].C_valid) {
+	   if (PAY.buf[index].vp_confident && PAY.buf[index].vp_pred_avail) {
+	      REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].vp_value.dw);
+	      REN->set_ready(PAY.buf[index].C_phys_reg);
+	      PAY.buf[index].vp_used = true;
+	   }
+	   else {
+	      REN->clear_ready(PAY.buf[index].C_phys_reg);
+	      PAY.buf[index].vp_used = false;
+	   }
+	}
+	else {
+	   PAY.buf[index].vp_used = false;
+	}
       // FIX_ME #9 END
 
 

@@ -538,9 +538,9 @@ bool pipeline_t::eligible(payload_t *pay){
 	
 	// if we reached this point, the instruction has a destination register
 	if(IS_INTALU(pay->flags))
-		return (predINTALU) // instr is INTALU type, It is eligible if predINTALU is configured true
+		return (predINTALU); // instr is INTALU type, It is eligible if predINTALU is configured true
 	else if(IS_FPALU(pay->flags))
-		return (predFPALU) // instr is FPALU type, It is eligible if predFPALU is configured true
+		return (predFPALU); // instr is FPALU type, It is eligible if predFPALU is configured true
 	else if(IS_LOAD(pay->flags) && !IS_AMO(pay->flags))
 		return (predLOAD); // instr is normal LOAD(not rare load-with-reserve). It is eligible if predLOAD is configured true
 	else

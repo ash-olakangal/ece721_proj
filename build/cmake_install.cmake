@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/ncsudrive/a/aolakan/ece721/proj3/721sim
+# Install script for directory: /mnt/ncsudrive/a/aolakan/ece721/proj4/721sim
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -44,8 +44,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/mnt/ncsudrive/a/aolakan/ece721/proj3/build/riscv-base/cmake_install.cmake")
-  include("/mnt/ncsudrive/a/aolakan/ece721/proj3/build/uarchsim/cmake_install.cmake")
+  include("/mnt/ncsudrive/a/aolakan/ece721/proj4/build/riscv-base/cmake_install.cmake")
+  include("/mnt/ncsudrive/a/aolakan/ece721/proj4/build/uarchsim/cmake_install.cmake")
 
 endif()
 
@@ -57,5 +57,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/mnt/ncsudrive/a/aolakan/ece721/proj3/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/mnt/ncsudrive/a/aolakan/ece721/proj4/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

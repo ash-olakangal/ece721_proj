@@ -165,6 +165,14 @@ typedef struct {
    // Set by Rename Stage.
    ////////////////////////
 
+   // aolakan
+   // value predication status fields
+   bool vp_eligible;
+   bool vp_pred_avail;
+   bool vp_confident;
+   bool vp_used;
+   union64_t vp_value; 
+
    // Physical registers.
    unsigned int A_phys_reg; // If there exists a first source register (A),
                             // this is the physical register specifier to
@@ -239,6 +247,7 @@ typedef struct {
 
    // If there was an exception during execution, the trap is stored here.
    trap_storage_t trap;
+
 
 } payload_t;
 

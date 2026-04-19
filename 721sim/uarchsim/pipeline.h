@@ -81,7 +81,7 @@
 #define IS_CSR(flags) ((flags) & (F_CSR))
 
 //proj4 addition
-#define IS_INTALU(flags) ((flags) & (F_ICOMMP)) // integer ALU instructions
+#define IS_INTALU(flags) ((flags) & (F_ICOMP)) // integer ALU instructions
 #define IS_FPALU(flags) ((flags) & (F_FCOMP)) // floating-point ALU instructions
 
 //////////////////////////////////////////////////////////////////////////////
@@ -173,6 +173,11 @@ public:
       uint32_t fu_lat[]);
 
    ~pipeline_t();
+
+   //aolakan - TODO read these from commandline
+   bool predINTALU;
+   bool predFPALU;
+   bool predLOAD;
 
    //proj4 addition
    bool eligible(payload_t *pay);
