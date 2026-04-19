@@ -180,6 +180,7 @@ public:
    bool predLOAD;
 
    //proj4 addition
+   bool vp_perfect_mode;
    bool eligible(payload_t *pay);
 
    //	void set_debug(bool value);

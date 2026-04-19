@@ -77,6 +77,12 @@ pipeline_t::pipeline_t(
                         LSU(lq_size, sq_size, _id, _mmu, this) {
    unsigned int i, j, ex_depth;
 
+   //aolakan - TODO read from ccommandline
+   predLOAD = false;
+   predFPALU = false;
+   predINTALU = false;
+   vp_perfect_mode = false;
+
    // Initialize the thread id.
    this->Tid = _id;
 

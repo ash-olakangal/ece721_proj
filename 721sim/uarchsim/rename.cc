@@ -158,6 +158,24 @@ void pipeline_t::rename2() {
 	PAY.buf[index].vp_used       = false;
 	PAY.buf[index].vp_value.dw   = 0;
 
+	// Perfect value prediction mode.
+	// Use checker/functional-simulator oracle only in this mode.
+	if (vp_perfect_mode && PAY.buf[index].vp_eligible && PAY.buf[index].good_instruction) {
+	
+	   //const db_t *actual = get_db_entry(PAY.buf[index].db_index);
+           const db_t *actual = get_pipe()->peek(PAY.buf[index].db_index);
+	
+	   assert(actual);
+	   assert(actual->a_valid);
+	   assert(actual->a_num_rdst <= 1);
+	
+	   if (actual->a_num_rdst == 1 && actual->a_rdst[0].valid) {
+	      PAY.buf[index].vp_pred_avail = true;
+	      PAY.buf[index].vp_confident  = true;
+	      PAY.buf[index].vp_value.dw   = actual->a_rdst[0].value;
+	   }
+	}
+
       // FIX_ME #4
       // Get the instruction's branch mask.
       //
