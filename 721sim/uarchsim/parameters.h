@@ -6,6 +6,20 @@
 // Pipe control
 extern unsigned int PIPE_QUEUE_SIZE;
 
+//aolakan
+//proj4 addition
+extern bool predINTALU;
+extern bool predFPALU;
+extern bool predLOAD;
+
+extern bool vp_perfect_mode;
+
+extern unsigned int SVP_VPQ_SIZE;
+extern bool SVP_ORACLECONF;
+extern unsigned int SVP_NUM_INDEX;
+extern unsigned int SVP_NUM_TAG;
+extern bool SVP_CONFMAX;
+
 
 // Oracle controls.
 extern bool PERFECT_BRANCH_PRED;

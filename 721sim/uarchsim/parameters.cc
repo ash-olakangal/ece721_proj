@@ -5,6 +5,20 @@
 // Pipe control
 uint32_t PIPE_QUEUE_SIZE = 8192;
 
+//aolakan
+// value prediction
+bool predINTALU;
+bool predFPALU;
+bool predLOAD;
+
+bool vp_perfect_mode;
+
+unsigned int SVP_VPQ_SIZE;
+bool SVP_ORACLECONF;
+unsigned int SVP_NUM_INDEX;
+unsigned int SVP_NUM_TAG;
+bool SVP_CONFMAX;
+
 
 // Oracle controls.
 bool PERFECT_BRANCH_PRED = false;

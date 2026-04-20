@@ -150,6 +150,51 @@ static void set_perfect_flags(const char *config) {
    }
 }
 
+//aolakan
+//additional functions for task6 of project 4
+static void set_vp_perf_flags(const char *config) {
+   uint64_t vp_perf;
+   if (sscanf(config, "%lu", &vp_perf) != 1) {
+      fprintf(stderr, "Incorrect usage of --vp-perf=<vp_perf>\n");
+      fprintf(stderr, "...where vp_perf is 0 or 1.\n");
+      exit(-1);
+   }
+   else {
+      vp_perfect_mode = (vp_perf ? true : false);
+   }
+}
+
+static void set_vp_svp_flags(const char *config) {
+   uint64_t vpq_size, oracleconf, num_index, num_tag, confmax;
+   if (sscanf(config, "%lu,%lu,%lu,%lu,%lu", &vpq_size, &oracleconf, &num_index, &num_tag, &confmax) != 5) {
+      fprintf(stderr, "Incorrect usage of --perf=<vpq_size>,<oracleconf>,<num_index>,<num_tag>,<confmax>\n");
+      fprintf(stderr, "...where vpq_size, oracleconf (either 0 or 1), num_index, num_tag, confmax(either 0 or 1)\n");
+      exit(-1);
+   }
+   else {
+      SVP_VPQ_SIZE = vpq_size;
+      SVP_ORACLECONF = (oracleconf ? true : false);
+      SVP_NUM_INDEX = num_index;
+      SVP_NUM_TAG = num_tag;
+      SVP_CONFMAX = (confmax ? true : false);
+   }
+}
+
+static void set_vp_eligible_flags(const char *config) {
+   uint64_t p_int, p_fp, p_load;
+   if (sscanf(config, "%lu,%lu,%lu", &p_int, &p_fp, &p_load) != 3) {
+      fprintf(stderr, "Incorrect usage of --perf=<pbp>,<pdc>,<pic>,<ptc>\n");
+      fprintf(stderr, "...where pbp (perfect branch prediction), pdc (perfect D$), pic (perfect I$), and ptc (perfect T$) are each 0 or 1.\n");
+      exit(-1);
+   }
+   else {
+      predINTALU = (p_int ? true : false);
+      predFPALU = (p_fp ? true : false);
+      predLOAD = (p_load ? true : false);
+   }
+}
+//end of additional functions
+
 static void set_mdp_flags(const char *config) {
    uint64_t mdp_model, mdp_ctr_max;
    if (sscanf(config, "%lu,%lu", &mdp_model, &mdp_ctr_max) != 2) {
@@ -424,6 +469,13 @@ int main(int argc, char **argv) {
    parser.option(0, "L2L3exist", 1, [&](const char *s) { config_L2L3present(s); });
    parser.option(0, "MEMLAT", 1, [&](const char *s) { L1_IC_MISS_LATENCY = L1_DC_MISS_LATENCY = L2_MISS_LATENCY = atoi(s); });
    parser.option(0, "perf", 1, [&](const char *s) { set_perfect_flags(s); });
+   //aolakan
+   //addition of flags for proj4
+   parser.option(0, "vp-eligible", 1, [&](const char *s) { set_vp_eligible_flags(s); });
+   parser.option(0, "vp-perf", 1, [&](const char *s) { set_vp_perf_flags(s); });
+   parser.option(0, "vp-svp", 1, [&](const char *s) { set_vp_svp_flags(s); });
+
+
    parser.option(0, "cp", 1, [&](const char *s) { NUM_CHECKPOINTS = atoi(s); });
 
    parser.option(0, "bq", 1, [&](const char *s) {BQ_SIZE = atoi(s); AUTO_BQ_SIZE = false; });

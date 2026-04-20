@@ -175,12 +175,12 @@ public:
    ~pipeline_t();
 
    //aolakan - TODO read these from commandline
-   bool predINTALU;
-   bool predFPALU;
-   bool predLOAD;
+   //bool predINTALU;
+   //bool predFPALU;
+   //bool predLOAD;
 
-   //proj4 addition
-   bool vp_perfect_mode;
+   ////proj4 addition
+   //bool vp_perfect_mode;
    bool eligible(payload_t *pay);
 
    //	void set_debug(bool value);
