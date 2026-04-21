@@ -171,6 +171,8 @@ typedef struct {
    bool vp_pred_avail;
    bool vp_confident;
    bool vp_used;
+   bool vpq_valid;
+   unsigned int vpq_index;
    union64_t vp_value; 
 
    // Physical registers.

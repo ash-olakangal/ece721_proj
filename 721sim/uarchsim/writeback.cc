@@ -116,7 +116,10 @@ void pipeline_t::writeback(unsigned int lane_number) {
             //    This will restore the RMT, FL, and AL, and also free this and future checkpoints... etc.
 
             // FIX_ME #15c BEGIN
-	    REN->resolve(PAY.buf[index].AL_index, PAY.buf[index].branch_ID, false);
+	         REN->resolve(PAY.buf[index].AL_index, PAY.buf[index].branch_ID, false);
+            if (!vp_perfect_mode && VP) {
+               VP->rollback_to_checkpoint(PAY.buf[index].branch_ID);
+            }
             // FIX_ME #15c END
 
             // Restore the LQ/SQ.
@@ -145,6 +148,17 @@ void pipeline_t::writeback(unsigned int lane_number) {
 
             // Rollback PAY to the point of the branch.
             PAY.rollback(index);
+         }
+      }
+
+
+      if (!vp_perfect_mode && VP && PAY.buf[index].vpq_valid && PAY.buf[index].C_valid) {
+         VP->deposit_value(PAY.buf[index].vpq_index, PAY.buf[index].C_value.dw);
+      }
+
+      if (PAY.buf[index].vp_used && PAY.buf[index].C_valid) {
+         if (PAY.buf[index].vp_value.dw != PAY.buf[index].C_value.dw) {
+            REN->set_value_misprediction(PAY.buf[index].AL_index);
          }
       }
 

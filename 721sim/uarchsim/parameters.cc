@@ -139,6 +139,17 @@ unsigned int L3_NUM_MHSRs = 128;
 unsigned int L3_MISS_SRV_PORTS = 128;
 unsigned int L3_MISS_SRV_LATENCY = 1;
 
+// Value prediction.
+bool VP_PERFECT_VALUE = false; 
+bool VP_ELIG_INTALU = false; 
+bool VP_ELIG_FPALU = false; 
+bool VP_ELIG_LOAD = false; 
+unsigned int VPQ_SIZE = 0; 
+bool VP_ORACLE_CONFIDENCE = false; 
+unsigned int VP_SVP_INDEX_BITS = 0; 
+unsigned int VP_SVP_TAG_BITS = 0; 
+unsigned int VP_SVP_CONFMAX = 0; 
+
 // Branch prediction unit
 bool AUTO_BQ_SIZE = true;
 unsigned int BQ_SIZE = 512;

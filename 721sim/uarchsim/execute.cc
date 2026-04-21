@@ -251,6 +251,16 @@ void pipeline_t::load_replay() {
          assert(PAY.buf[index].C_log_reg != 0); // if X0, would have cleared C_valid in Decode Stage
          PAY.buf[index].C_value.dw = value;
 
+         if (!vp_perfect_mode && VP && PAY.buf[index].vpq_valid) {
+            VP->deposit_value(PAY.buf[index].vpq_index, PAY.buf[index].C_value.dw);
+         }
+
+         if (PAY.buf[index].vp_used) {
+            if (PAY.buf[index].vp_value.dw != PAY.buf[index].C_value.dw) {
+               REN->set_value_misprediction(PAY.buf[index].AL_index);
+            }
+         }
+
          // FIX_ME #18a
          // Tips:
          // 1. At this point of the code, 'index' is the instruction's index into PAY.buf[] (payload).

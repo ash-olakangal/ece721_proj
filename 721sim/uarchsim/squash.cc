@@ -39,6 +39,9 @@ void pipeline_t::squash_complete(reg_t jump_PC) {
 
    // FIX_ME #17c BEGIN
    REN->squash();
+   if (!vp_perfect_mode && VP) {
+      VP->full_squash();
+   }
    // FIX_ME #17c END
 
 

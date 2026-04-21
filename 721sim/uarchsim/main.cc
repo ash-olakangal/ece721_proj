@@ -70,6 +70,9 @@ static void help() {
    fprintf(stderr, "  --L2=<SIZE>:<ASSOC>:<BLOCKSIZE>:<#MHSR>:<HITTIME>\tConfigure L2 $. Derived # sets must be power-of-2. Block size must be power-of-2.\n");
    fprintf(stderr, "  --L3=<SIZE>:<ASSOC>:<BLOCKSIZE>:<#MHSR>:<HITTIME>\tConfigure L3 $. Derived # sets must be power-of-2. Block size must be power-of-2.\n");
    fprintf(stderr, "  --MEMLAT=<latency>\tConfigure a fixed miss penalty for a miss in the LLC.\n");
+   fprintf(stderr, "  --vp-perf=<0/1>    1: perfect value prediction, 0: disable perfect value prediction\n"); 
+   fprintf(stderr, "  --vp-eligible=<intalu>,<fpalu>,<load>\tEach is 0 or 1\n"); 
+   fprintf(stderr, "  --vp-svp=<vpq_size>,<oracle_conf>,<index_bits>,<tag_bits>,<confmax>\n"); 
    exit(1);
 }
 
@@ -152,6 +155,7 @@ static void set_perfect_flags(const char *config) {
 
 //aolakan
 //additional functions for task6 of project 4
+/*
 static void set_vp_perf_flags(const char *config) {
    uint64_t vp_perf;
    if (sscanf(config, "%lu", &vp_perf) != 1) {
@@ -194,6 +198,7 @@ static void set_vp_eligible_flags(const char *config) {
    }
 }
 //end of additional functions
+*/
 
 static void set_mdp_flags(const char *config) {
    uint64_t mdp_model, mdp_ctr_max;
@@ -436,6 +441,41 @@ static void endSimulation(int signal) {
    delete s_micro;
 }
 
+static void set_vp_perf(const char *config) {
+   uint64_t v;
+   if (sscanf(config, "%lu", &v) != 1) {
+      fprintf(stderr, "Incorrect usage of --vp-perf=<0/1>\n");
+      exit(-1);
+   }
+   VP_PERFECT_VALUE = (v ? true : false);
+}
+
+static void set_vp_eligible(const char *config) {
+   uint64_t intalu, fpalu, load;
+   if (sscanf(config, "%lu,%lu,%lu", &intalu, &fpalu, &load) != 3) {
+      fprintf(stderr, "Incorrect usage of --vp-eligible=<intalu>,<fpalu>,<load>\n");
+      exit(-1);
+   }
+
+   VP_ELIG_INTALU = (intalu ? true : false);
+   VP_ELIG_FPALU  = (fpalu ? true : false);
+   VP_ELIG_LOAD   = (load ? true : false);
+}
+
+static void set_vp_svp(const char *config) {
+   uint64_t vpq_size, oracle_conf, index_bits, tag_bits, confmax;
+   if (sscanf(config, "%lu,%lu,%lu,%lu,%lu", &vpq_size, &oracle_conf, &index_bits, &tag_bits, &confmax) != 5) {
+      fprintf(stderr, "Incorrect usage of --vp-svp=<vpq_size>,<oracle_conf>,<index_bits>,<tag_bits>,<confmax>\n");
+      exit(-1);
+   }
+
+   VPQ_SIZE = (unsigned int)vpq_size;
+   VP_ORACLE_CONFIDENCE = (oracle_conf ? true : false);
+   VP_SVP_INDEX_BITS = (unsigned int)index_bits;
+   VP_SVP_TAG_BITS = (unsigned int)tag_bits;
+   VP_SVP_CONFMAX = (unsigned int)confmax;
+}
+
 
 int main(int argc, char **argv) {
    bool debug = false;
@@ -471,10 +511,15 @@ int main(int argc, char **argv) {
    parser.option(0, "perf", 1, [&](const char *s) { set_perfect_flags(s); });
    //aolakan
    //addition of flags for proj4
+   /*
    parser.option(0, "vp-eligible", 1, [&](const char *s) { set_vp_eligible_flags(s); });
    parser.option(0, "vp-perf", 1, [&](const char *s) { set_vp_perf_flags(s); });
    parser.option(0, "vp-svp", 1, [&](const char *s) { set_vp_svp_flags(s); });
-
+   */
+   
+   parser.option(0, "vp-perf", 1, [&](const char *s) { set_vp_perf(s); });
+   parser.option(0, "vp-eligible", 1, [&](const char *s) { set_vp_eligible(s); });
+   parser.option(0, "vp-svp", 1, [&](const char *s) { set_vp_svp(s); });
 
    parser.option(0, "cp", 1, [&](const char *s) { NUM_CHECKPOINTS = atoi(s); });
 

@@ -48,6 +48,8 @@
 
 #include "alu_ops.h"
 
+#include "svp_vpq.h"
+
 //////////////////////////////////////////////////////////////////////////////
 
 /* instruction flags */
@@ -175,12 +177,12 @@ public:
    ~pipeline_t();
 
    //aolakan - TODO read these from commandline
-   //bool predINTALU;
-   //bool predFPALU;
-   //bool predLOAD;
+   bool predINTALU;
+   bool predFPALU;
+   bool predLOAD;
 
-   ////proj4 addition
-   //bool vp_perfect_mode;
+   //proj4 addition
+   bool vp_perfect_mode;
    bool eligible(payload_t *pay);
 
    //	void set_debug(bool value);
@@ -335,6 +337,11 @@ private:
    // Register renaming modules.
    /////////////////////////////////////////////////////////////
    renamer *REN;
+
+   /////////////////////////////////////////////////////////////
+   // Value Prediction (SVP + VPQ)
+   /////////////////////////////////////////////////////////////
+   SVPVPQ *VP;
 
    /////////////////////////////////////////////////////////////
    // Memory Dependency Prediction

@@ -51,6 +51,7 @@ void pipeline_t::rename2() {
    unsigned int i;
    unsigned int index;
    unsigned int bundle_dst, bundle_branch;
+   unsigned int bundle_vp;
 
    // Stall the rename2 sub-stage if either:
    // (1) There isn't a current rename bundle.
@@ -65,6 +66,7 @@ void pipeline_t::rename2() {
    // Third stall condition: There aren't enough rename resources for the current rename bundle.
    bundle_dst = 0;
    bundle_branch = 0;
+   bundle_vp = 0;
    for (i = 0; i < dispatch_width; i++) {
       if (!RENAME2[i].valid)
          break; // Not a valid instruction: Reached the end of the rename bundle so exit loop.
@@ -92,6 +94,9 @@ void pipeline_t::rename2() {
 	if (PAY.buf[index].C_valid) {
 	   bundle_dst++;
 	}
+   if (!vp_perfect_mode && VP && eligible(&PAY.buf[index])) {
+         bundle_vp++;
+   }
       // FIX_ME #1 END
    }
 
@@ -106,8 +111,10 @@ void pipeline_t::rename2() {
    // This is achieved by doing nothing and proceeding to the next statements.
 
    // FIX_ME #2 BEGIN
-   if (REN->stall_branch(bundle_branch) || REN->stall_reg(bundle_dst)) {
-   return;
+   if (REN->stall_branch(bundle_branch) ||
+       REN->stall_reg(bundle_dst) ||
+       (!vp_perfect_mode && VP && !VP->can_allocate(bundle_vp))) {
+      return;
    }
    // FIX_ME #2 END
 
@@ -156,7 +163,34 @@ void pipeline_t::rename2() {
 	PAY.buf[index].vp_pred_avail = false;
 	PAY.buf[index].vp_confident  = false;
 	PAY.buf[index].vp_used       = false;
+   PAY.buf[index].vpq_valid     = false; 
+   PAY.buf[index].vpq_index     = 0;
 	PAY.buf[index].vp_value.dw   = 0;
+
+   // Real SVP+VPQ mode.
+   if (!vp_perfect_mode && VP && PAY.buf[index].vp_eligible) {
+      bool ok = VP->allocate_vpq(PAY.buf[index].pc, PAY.buf[index].vpq_index);
+      assert(ok);
+      PAY.buf[index].vpq_valid = true;
+
+      uint64_t pred_value = 0;
+      bool confident = false;
+      if (VP->predict(PAY.buf[index].pc, pred_value, confident)) {
+         PAY.buf[index].vp_pred_avail = true;
+         PAY.buf[index].vp_value.dw = pred_value;
+         PAY.buf[index].vp_confident = confident;
+
+         if (VP_ORACLE_CONFIDENCE && PAY.buf[index].good_instruction) {
+            const db_t *actual = get_pipe()->peek(PAY.buf[index].db_index);
+            if (actual && actual->a_valid && actual->a_num_rdst == 1 && actual->a_rdst[0].valid) {
+               PAY.buf[index].vp_confident = (actual->a_rdst[0].value == pred_value);
+            }
+            else {
+               PAY.buf[index].vp_confident = false;
+            }
+         }
+      }
+   }
 
 	// Perfect value prediction mode.
 	// Use checker/functional-simulator oracle only in this mode.
@@ -203,6 +237,9 @@ void pipeline_t::rename2() {
       // FIX_ME #5 BEGIN
       if (PAY.buf[index].checkpoint) {
          PAY.buf[index].branch_ID = REN->checkpoint();
+         if (!vp_perfect_mode && VP) {
+            VP->checkpoint(PAY.buf[index].branch_ID);
+         }
       }
       // FIX_ME #5 END
    }

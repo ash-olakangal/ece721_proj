@@ -78,10 +78,11 @@ pipeline_t::pipeline_t(
    unsigned int i, j, ex_depth;
 
    //aolakan - TODO read from ccommandline
-   predLOAD = false;
-   predFPALU = false;
-   predINTALU = false;
-   vp_perfect_mode = false;
+   // Value prediction knobs
+   predLOAD = VP_ELIG_LOAD;
+   predFPALU = VP_ELIG_FPALU;
+   predINTALU = VP_ELIG_INTALU;
+   vp_perfect_mode = VP_PERFECT_VALUE;
 
    // Initialize the thread id.
    this->Tid = _id;
@@ -247,6 +248,20 @@ pipeline_t::pipeline_t(
    // Set up the register renaming modules.
    ////////////////////////////////////////////////////////////
    REN = new renamer(NXPR + NFPR, prf_size, num_chkpts, rob_size);
+
+   /////////////////////////////////////////////////////////////
+   // Value Prediction (SVP + VPQ)
+   /////////////////////////////////////////////////////////////
+   if (!vp_perfect_mode && VPQ_SIZE > 0) {
+      VP = new SVPVPQ(VPQ_SIZE,
+                      num_chkpts,
+                      VP_SVP_INDEX_BITS,
+                      VP_SVP_TAG_BITS,
+                      VP_SVP_CONFMAX);
+   }
+   else {
+      VP = NULL;
+   }
 
    /////////////////////////////////////////////////////////////
    // Pipeline register between the Rename and Dispatch Stages.
@@ -481,6 +496,11 @@ pipeline_t::~pipeline_t() {
    fclose(this->cache_log);
 #endif
 
+   if (VP) {
+      delete VP;
+      VP = NULL;
+   }
+   
    fclose(this->stats_log);
    //fclose(this->phase_log   );
 }

@@ -8,6 +8,7 @@ extern unsigned int PIPE_QUEUE_SIZE;
 
 //aolakan
 //proj4 addition
+/*
 extern bool predINTALU;
 extern bool predFPALU;
 extern bool predLOAD;
@@ -19,7 +20,7 @@ extern bool SVP_ORACLECONF;
 extern unsigned int SVP_NUM_INDEX;
 extern unsigned int SVP_NUM_TAG;
 extern bool SVP_CONFMAX;
-
+*/
 
 // Oracle controls.
 extern bool PERFECT_BRANCH_PRED;
@@ -104,6 +105,17 @@ extern unsigned int L3_MISS_LATENCY;
 extern unsigned int L3_NUM_MHSRs;
 extern unsigned int L3_MISS_SRV_PORTS;
 extern unsigned int L3_MISS_SRV_LATENCY;
+
+// Value prediction.
+extern bool VP_PERFECT_VALUE;
+extern bool VP_ELIG_INTALU; 
+extern bool VP_ELIG_FPALU; 
+extern bool VP_ELIG_LOAD; 
+extern unsigned int VPQ_SIZE; 
+extern bool VP_ORACLE_CONFIDENCE; 
+extern unsigned int VP_SVP_INDEX_BITS;
+extern unsigned int VP_SVP_TAG_BITS; 
+extern unsigned int VP_SVP_CONFMAX; 
 
 // Branch prediction unit
 extern bool AUTO_BQ_SIZE;

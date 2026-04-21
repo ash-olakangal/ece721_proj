@@ -80,7 +80,11 @@ void pipeline_t::retire(size_t &instret) {
          //
 
          // FIX_ME #17b BEGIN
-	 REN->commit();
+         if (!vp_perfect_mode && VP && PAY.buf[PAY.head].vpq_valid) {
+            assert(VP->head_ready());
+            VP->retire_train();
+         }
+	      REN->commit();
          // FIX_ME #17b END
 
          // If the committed instruction is a load or store, signal the LSU to commit its oldest load or store, respectively.
