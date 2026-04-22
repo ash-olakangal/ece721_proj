@@ -79,12 +79,39 @@ void pipeline_t::execute(unsigned int lane_number) {
   	    //     REN->set_ready(PAY.buf[index].C_phys_reg);
   	    //     REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
 	    //}
+	    //if (hit && PAY.buf[index].C_valid) {
+	    //  if (!PAY.buf[index].vp_used) {
+	    //     IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+	    //     REN->set_ready(PAY.buf[index].C_phys_reg);
+	    //  }
+	    //  REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	    //}
+	    //
+
+	    //aolakan - task5
+
 	    if (hit && PAY.buf[index].C_valid) {
-	      if (!PAY.buf[index].vp_used) {
-	         IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
-	         REN->set_ready(PAY.buf[index].C_phys_reg);
-	      }
-	      REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	       bool vp_misp = false;
+	    
+	       // if vp used
+	       if (PAY.buf[index].vp_used) {
+	          vp_misp = (PAY.buf[index].vp_value.dw != PAY.buf[index].C_value.dw);
+
+		  // if vp used and mispredicted - post Active list flag and overwrite PRF with correct value
+	          if (vp_misp) {
+	             REN->set_value_misprediction(PAY.buf[index].AL_index);
+	          }
+	       }
+	    
+	       // keep original condiction if no vp
+	       if (!PAY.buf[index].vp_used) {
+	          IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+	          REN->set_ready(PAY.buf[index].C_phys_reg);
+	       }
+	    
+	       if (!PAY.buf[index].vp_used || vp_misp) {
+	          REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	       }
 	    }
             // FIX_ME #13 END
          }
@@ -141,8 +168,26 @@ void pipeline_t::execute(unsigned int lane_number) {
          // You don't have to decode the instruction, rather, just check the existence (validity) of a destination register.
 
          // FIX_ME #14 BEGIN
+	 //if (PAY.buf[index].C_valid) {
+  	 //REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	 //}
+
+	 //aolakan - task 5
 	 if (PAY.buf[index].C_valid) {
-  	 REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	    bool vp_misp = false;
+	 
+	    if (PAY.buf[index].vp_used) {
+
+	       // check between predicted and actual value
+	       vp_misp = (PAY.buf[index].vp_value.dw != PAY.buf[index].C_value.dw);
+	       if (vp_misp) {
+	          REN->set_value_misprediction(PAY.buf[index].AL_index);
+	       }
+	    }
+	 
+	    if (!PAY.buf[index].vp_used || vp_misp) {
+	       REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	    }
 	 }
          // FIX_ME #14 END
       }
@@ -273,11 +318,29 @@ void pipeline_t::load_replay() {
 	 //REN->set_ready(PAY.buf[index].C_phys_reg);
 	 //REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
 
+	 //if (!PAY.buf[index].vp_used) {
+	 //   IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
+	 //   REN->set_ready(PAY.buf[index].C_phys_reg);
+	 //}
+	 //REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+
+	 bool vp_misp = false;
+
+	 if (PAY.buf[index].vp_used) {
+	    vp_misp = (PAY.buf[index].vp_value.dw != PAY.buf[index].C_value.dw);
+	    if (vp_misp) {
+	       REN->set_value_misprediction(PAY.buf[index].AL_index);
+	    }
+	 }
+	 
 	 if (!PAY.buf[index].vp_used) {
 	    IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
 	    REN->set_ready(PAY.buf[index].C_phys_reg);
 	 }
-	 REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	 
+	 if (!PAY.buf[index].vp_used || vp_misp) {
+	    REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
+	 }
 
          // FIX_ME #18a END
       }
