@@ -185,6 +185,17 @@ public:
    bool vp_perfect_mode;
    bool eligible(payload_t *pay);
 
+   // reporting stats for proj4
+   uint64_t vpmeas_ineligible;
+   uint64_t vpmeas_eligible;
+   uint64_t vpmeas_miss;         
+   uint64_t vpmeas_conf_corr;    
+   uint64_t vpmeas_conf_incorr;  
+   uint64_t vpmeas_unconf_corr; 
+   uint64_t vpmeas_unconf_incorr;
+
+   void print_vp_stats(FILE *fp);
+
    //	void set_debug(bool value);
    //	void set_histogram(bool value);
    bool get_histogram() { return histogram_enabled; }

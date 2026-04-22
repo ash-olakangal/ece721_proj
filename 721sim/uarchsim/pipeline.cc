@@ -84,6 +84,15 @@ pipeline_t::pipeline_t(
    predINTALU = VP_ELIG_INTALU;
    vp_perfect_mode = VP_PERFECT_VALUE;
 
+   //init the vp stats variables
+   vpmeas_ineligible = 0;
+   vpmeas_eligible = 0;
+   vpmeas_miss = 0;         
+   vpmeas_conf_corr = 0;    
+   vpmeas_conf_incorr = 0;  
+   vpmeas_unconf_corr = 0; 
+   vpmeas_unconf_incorr = 0;
+
    // Initialize the thread id.
    this->Tid = _id;
 
@@ -480,6 +489,8 @@ pipeline_t::~pipeline_t() {
 
    FetchUnit->output(stats->get_counter("commit_count"), stats->get_counter("cycle_count"), stats_log);
    LSU.dump_stats(extra_wait_time_for_inum, stats_log);
+   print_vp_stats(stats_log);
+   
 
 #ifdef RISCV_MICRO_DEBUG
    fclose(this->fetch_log);
@@ -571,6 +582,27 @@ bool pipeline_t::eligible(payload_t *pay){
 		return (predLOAD); // instr is normal LOAD(not rare load-with-reserve). It is eligible if predLOAD is configured true
 	else
 		return (false);
+}
+
+
+#define VP_STAT(fp, var, total, desc) \
+    fprintf(fp, "%-20s : %10lu (%6.2f%%) // %s\n", #var, (unsigned long)(var), \
+           ((total) > 0 ? ((double)(var) * 100.0 / (total)) : 0.0), desc)
+
+#define VP_SUBSTAT(fp, var, total, desc) \
+    fprintf(fp, "   %-20s : %10lu (%6.2f%%) // %s\n", #var, (unsigned long)(var), \
+           ((total) > 0 ? ((double)(var) * 100.0 / (total)) : 0.0), desc)
+
+void pipeline_t::print_vp_stats(FILE *fp){
+	fprintf(fp, "VPU MEASUREMENTS-----------------------------------\n");
+	uint64_t total = vpmeas_ineligible + vpmeas_eligible;
+	VP_STAT(fp, vpmeas_ineligible, total, "Not eligible for value prediction");
+	VP_STAT(fp, vpmeas_eligible, total, "Eligible for value prediction");
+	VP_SUBSTAT(fp, vpmeas_miss, total, "VPU was unable to generate a value prediction (e.g., SVP miss).");
+	VP_SUBSTAT(fp, vpmeas_conf_corr, total, "VPU generated a confident and correct value prediction.");
+	VP_SUBSTAT(fp, vpmeas_conf_incorr, total, "VPU generated a confident and incorrect value prediction. (MISPREDICTION)");
+	VP_SUBSTAT(fp, vpmeas_unconf_corr, total, "VPU generated an unconfident and correct value prediction. (LOST OPPORTUNITY)");
+	VP_SUBSTAT(fp, vpmeas_unconf_incorr, total, "VPU generated an unconfident and incorrect value prediction.");
 }
 
 bool pipeline_t::step_micro(size_t instret_limit, size_t &instret) {
