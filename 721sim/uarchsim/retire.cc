@@ -52,33 +52,6 @@ void pipeline_t::retire(size_t &instret) {
 
    if (head_valid && completed) { // AL head exists and completed
 
-      if(PAY.buf[PAY.head].vp_eligible){
-         vpmeas_eligible++;
-
-	 if(!PAY.buf[PAY.head].vp_pred_avail){
-	   vpmeas_miss++;
-	 }
-	 else if(PAY.buf[PAY.head].vp_confident){
-           if(PAY.buf[PAY.head].vp_value.dw != PAY.buf[PAY.head].C_value.dw){
-	     vpmeas_conf_incorr++;
-	   }
-	   else{
-	     vpmeas_conf_corr++;
-	   }
-	 }
-	 else{
-           if(PAY.buf[PAY.head].vp_value.dw != PAY.buf[PAY.head].C_value.dw){
-	     vpmeas_unconf_incorr++;
-	   }
-	   else{
-	     vpmeas_unconf_corr++;
-	   }
-	 
-	 }
-      }
-      else{
-      	 vpmeas_ineligible++;
-      }
 
       // Sanity checks of the 'amo' and 'csr' flags.
       assert(!amo || IS_AMO(PAY.buf[PAY.head].flags));
@@ -112,6 +85,35 @@ void pipeline_t::retire(size_t &instret) {
             assert(VP->head_ready());
             VP->retire_train();
          }
+
+
+        if(PAY.buf[PAY.head].vp_eligible){
+           vpmeas_eligible++;
+
+           if(!PAY.buf[PAY.head].vp_pred_avail){
+             vpmeas_miss++;
+           }
+           else if(PAY.buf[PAY.head].vp_confident){
+             if(PAY.buf[PAY.head].vp_value.dw != PAY.buf[PAY.head].C_value.dw){
+               vpmeas_conf_incorr++;
+             }
+             else{
+               vpmeas_conf_corr++;
+             }
+           }
+           else{
+             if(PAY.buf[PAY.head].vp_value.dw != PAY.buf[PAY.head].C_value.dw){
+               vpmeas_unconf_incorr++;
+             }
+             else{
+               vpmeas_unconf_corr++;
+             }
+           
+           }
+        }
+        else{
+            vpmeas_ineligible++;
+        }
 	      REN->commit();
          // FIX_ME #17b END
 
