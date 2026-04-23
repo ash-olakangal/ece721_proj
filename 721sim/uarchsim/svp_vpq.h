@@ -101,6 +101,10 @@ public:
    void rollback_to_checkpoint(unsigned int branch_id);
    void full_squash();
 
+   uint64_t num_svp_entries() const;
+   uint64_t conf_bits() const;
+   uint64_t instance_bits() const;
+   uint64_t bits_per_svp_entry() const;
    uint64_t storage_bits() const;
 };
 

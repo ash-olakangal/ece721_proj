@@ -1,5 +1,16 @@
 #include "svp_vpq.h"
 
+static uint64_t ceil_log2_u64(uint64_t x) {
+   if (x <= 1) return 0;
+   uint64_t bits = 0;
+   uint64_t v = x - 1;
+   while (v > 0) {
+      bits++;
+      v >>= 1;
+   }
+   return bits;
+}
+
 SVPVPQ::SVPVPQ(unsigned int _vpq_size,
                unsigned int _num_checkpoints,
                unsigned int _index_bits,
@@ -94,6 +105,13 @@ bool SVPVPQ::allocate_vpq(uint64_t pc, unsigned int &vpq_index) {
    vpq[vpq_tail].value = 0;
    vpq[vpq_tail].value_ready = false;
 
+   unsigned int idx;
+   if (hit(pc, idx)) {
+      if (svp[idx].valid && svp[idx].tag == get_tag(pc)) {
+         svp[idx].instance++;
+      }
+   }
+
    vpq_advance_tail();
    return true;
 }
@@ -101,6 +119,7 @@ bool SVPVPQ::allocate_vpq(uint64_t pc, unsigned int &vpq_index) {
 bool SVPVPQ::predict(uint64_t pc, uint64_t &predicted_value, bool &confident) {
    unsigned int idx;
    if (!hit(pc, idx)) {
+      predicted_value = 0;
       confident = false;
       return false;
    }
@@ -108,9 +127,10 @@ bool SVPVPQ::predict(uint64_t pc, uint64_t &predicted_value, bool &confident) {
    SVPEntry &e = svp[idx];
 
    // Speculatively bump instance first, then predict.
-   e.instance++;
+   //e.instance++;
 
-   int64_t pred = (int64_t)e.retired_value + ((int64_t)e.instance * e.stride);
+   //int64_t pred = (int64_t)e.retired_value + ((int64_t)e.instance * e.stride);
+   int64_t pred = e.retired_value + (e.instance * e.stride);
    predicted_value = (uint64_t)pred;
    confident = (e.confidence >= conf_max);
 
@@ -191,7 +211,8 @@ void SVPVPQ::retire_train() {
       e.confidence = 0;
       e.retired_value = value;
       e.stride = (int64_t)value; // matches professor's example initialization
-      e.instance = count_inflight_instances(pc);
+      //e.instance = count_inflight_instances(pc);
+      e.instance = 0;
    }
 }
 
@@ -258,8 +279,9 @@ void SVPVPQ::full_squash() {
       checkpoints[i].valid = false;
    }
 }
-
+/*
 uint64_t SVPVPQ::storage_bits() const {
+   
    uint64_t svp_bits = 0;
    uint64_t tag_storage = tag_bits;
    uint64_t conf_bits = 64; // over-approximation, fine for now
@@ -275,3 +297,34 @@ uint64_t SVPVPQ::storage_bits() const {
 
    return (svp_bits + vpq_bits);
 }
+   */
+   uint64_t SVPVPQ::num_svp_entries() const {
+      return (uint64_t)svp.size();
+   }
+
+   uint64_t SVPVPQ::conf_bits() const {
+      // formula: ceil(log2(confmax+1))
+      return ceil_log2_u64(conf_max + 1);
+   }
+
+   uint64_t SVPVPQ::instance_bits() const {
+      // formula: ceil(log2(VPQsize))
+      return ceil_log2_u64(vpq_size);
+   }
+
+   uint64_t SVPVPQ::bits_per_svp_entry() const {
+      // Task 7 says count only value prediction tables.
+      // For stride predictor, count only the SVP table, not the VPQ.
+      //
+      // One SVP entry:
+      //   tag
+      //   conf
+      //   retired_value
+      //   stride
+      //   instance ctr
+      return (uint64_t)tag_bits + conf_bits() + 64 + 64 + instance_bits();
+   }
+
+   uint64_t SVPVPQ::storage_bits() const {
+      return num_svp_entries() * bits_per_svp_entry();
+   }
