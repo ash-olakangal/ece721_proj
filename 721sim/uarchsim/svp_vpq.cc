@@ -48,9 +48,11 @@ uint64_t SVPVPQ::get_tag(uint64_t pc) const {
 
 bool SVPVPQ::hit(uint64_t pc, unsigned int &idx) const {
    idx = get_index(pc);
+   if (tag_bits == 0)
+      return true;   // always a hit in no-tag mode
    const SVPEntry &e = svp[idx];
-   if (!e.valid) return false;
-   if (tag_bits == 0) return true;
+   if (!e.valid)
+      return false;
    return (e.tag == get_tag(pc));
 }
 
@@ -107,9 +109,7 @@ bool SVPVPQ::allocate_vpq(uint64_t pc, unsigned int &vpq_index) {
 
    unsigned int idx;
    if (hit(pc, idx)) {
-      if (svp[idx].valid && svp[idx].tag == get_tag(pc)) {
-         svp[idx].instance++;
-      }
+      svp[idx].instance++;
    }
 
    vpq_advance_tail();
@@ -211,8 +211,8 @@ void SVPVPQ::retire_train() {
       e.confidence = 0;
       e.retired_value = value;
       e.stride = (int64_t)value; // matches professor's example initialization
-      //e.instance = count_inflight_instances(pc);
-      e.instance = 0;
+      e.instance = count_inflight_instances(pc);
+      //e.instance = 0;
    }
 }
 
