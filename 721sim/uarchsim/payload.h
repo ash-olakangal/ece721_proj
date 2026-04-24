@@ -22,6 +22,13 @@ union union64_t {
    double d;
 };
 
+ enum vp_provider_t {
+ VP_PROVIDER_NONE = 0,
+ VP_PROVIDER_PERF,
+ VP_PROVIDER_SVP,
+ VP_PROVIDER_VTAGE
+ };
+
 typedef unsigned int debug_index_t;
 
 class trap_storage_t {
@@ -174,6 +181,11 @@ typedef struct {
    bool vpq_valid;
    unsigned int vpq_index;
    union64_t vp_value; 
+
+   
+   uint8_t vp_provider;
+   int8_t  vp_provider_info;   // VTAGE provider: 0=base, 1..N=tagged bank, -1 otherwise
+   bool    vp_correct;
 
    // Physical registers.
    unsigned int A_phys_reg; // If there exists a first source register (A),

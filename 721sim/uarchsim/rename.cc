@@ -158,14 +158,17 @@ void pipeline_t::rename2() {
 	}
       // FIX_ME #3 END
 
-	//aolakan
+	/*
 	PAY.buf[index].vp_eligible   = eligible(&PAY.buf[index]);
 	PAY.buf[index].vp_pred_avail = false;
 	PAY.buf[index].vp_confident  = false;
 	PAY.buf[index].vp_used       = false;
-   PAY.buf[index].vpq_valid     = false; 
-   PAY.buf[index].vpq_index     = 0;
+        PAY.buf[index].vpq_valid     = false; 
+        PAY.buf[index].vpq_index     = 0;
 	PAY.buf[index].vp_value.dw   = 0;
+	PAY.buf[index].vp_provider = VP_PROVIDER_NONE;
+	PAY.buf[index].vp_provider_info = -1;
+	PAY.buf[index].vp_correct = false;
 
    // Real SVP+VPQ mode.
    if (!vp_perfect_mode && VP && PAY.buf[index].vp_eligible) {
@@ -209,6 +212,116 @@ void pipeline_t::rename2() {
 	      PAY.buf[index].vp_value.dw   = actual->a_rdst[0].value;
 	   }
 	}
+	*/
+
+	//aolakan
+	PAY.buf[index].vp_eligible   = eligible(&PAY.buf[index]);
+	PAY.buf[index].vp_pred_avail = false;
+	PAY.buf[index].vp_confident  = false;
+	PAY.buf[index].vp_used       = false;
+	PAY.buf[index].vpq_valid     = false;
+	PAY.buf[index].vpq_index     = 0;
+	PAY.buf[index].vp_value.dw   = 0;
+	PAY.buf[index].vp_provider   = VP_PROVIDER_NONE;
+	PAY.buf[index].vp_provider_info = -1;
+	PAY.buf[index].vp_correct    = false;
+	
+	// Allocate VPQ entry for any real predictor path that uses the existing VPQ/SVP machinery.
+	if (!use_perfect_vp() && VP && PAY.buf[index].vp_eligible) {
+	   bool ok = VP->allocate_vpq(PAY.buf[index].pc, PAY.buf[index].vpq_index);
+	   assert(ok);
+	   PAY.buf[index].vpq_valid = true;
+	}
+	
+	// Perfect VP path
+	if (use_perfect_vp() &&
+	    PAY.buf[index].vp_eligible &&
+	    PAY.buf[index].good_instruction) {
+	
+	   const db_t *actual = get_pipe()->peek(PAY.buf[index].db_index);
+	   assert(actual);
+	   assert(actual->a_valid);
+	   assert(actual->a_num_rdst <= 1);
+	
+	   if (actual->a_num_rdst == 1 && actual->a_rdst[0].valid) {
+	      PAY.buf[index].vp_pred_avail = true;
+	      PAY.buf[index].vp_confident  = true;
+	      PAY.buf[index].vp_value.dw   = actual->a_rdst[0].value;
+	      PAY.buf[index].vp_provider   = VP_PROVIDER_PERF;
+	   }
+	}
+
+	else if (!use_perfect_vp() && VP && PAY.buf[index].vp_eligible) {
+           bool svp_avail = false;
+           bool svp_conf = false;
+           uint64_t svp_value = 0;
+        
+           svp_avail = VP->predict(PAY.buf[index].pc, svp_value, svp_conf);
+        
+           bool vtage_avail = false;
+           bool vtage_conf = false;
+           uint64_t vtage_value = 0;
+           int vtage_provider = -1;
+        
+           if (VTAGE) {
+              VTAGEPredictor::Prediction vp = VTAGE->predict(PAY.buf[index].pc);
+              vtage_avail = vp.available;
+              vtage_conf  = vp.confident;
+              vtage_value = vp.value;
+              vtage_provider = vp.provider;
+           }
+
+           bool is_load = IS_LOAD(PAY.buf[index].flags) && !IS_AMO(PAY.buf[index].flags);
+        
+           // 1. SVP confident always wins.
+           if (svp_avail && svp_conf) {
+              PAY.buf[index].vp_pred_avail = true;
+              PAY.buf[index].vp_confident  = true;
+              PAY.buf[index].vp_value.dw   = svp_value;
+              PAY.buf[index].vp_provider   = VP_PROVIDER_SVP;
+              PAY.buf[index].vp_provider_info = -1;
+        
+              if (VP_ORACLE_CONFIDENCE && PAY.buf[index].good_instruction) {
+                 const db_t *actual = get_pipe()->peek(PAY.buf[index].db_index);
+                 if (actual && actual->a_valid &&
+                     actual->a_num_rdst == 1 &&
+                     actual->a_rdst[0].valid) {
+                    PAY.buf[index].vp_confident = (actual->a_rdst[0].value == svp_value);
+                 }
+                 else {
+                    PAY.buf[index].vp_confident = false;
+                 }
+              }
+           }
+        
+           // 2. VTAGE can override only if SVP MISSED, and only for loads.
+           else if (!svp_avail && vtage_avail && vtage_conf && is_load) {
+              PAY.buf[index].vp_pred_avail = true;
+              PAY.buf[index].vp_confident  = true;
+              PAY.buf[index].vp_value.dw   = vtage_value;
+              PAY.buf[index].vp_provider   = VP_PROVIDER_VTAGE;
+              PAY.buf[index].vp_provider_info = vtage_provider;
+           }
+        
+           // 3. If SVP has an unconfident prediction, keep SVP for measurement only.
+           else if (svp_avail) {
+              PAY.buf[index].vp_pred_avail = true;
+              PAY.buf[index].vp_confident  = false;
+              PAY.buf[index].vp_value.dw   = svp_value;
+              PAY.buf[index].vp_provider   = VP_PROVIDER_SVP;
+              PAY.buf[index].vp_provider_info = -1;
+           }
+        
+           // 4. Only if SVP totally missed, keep VTAGE unconfident prediction for measurement.
+           else if (vtage_avail) {
+              PAY.buf[index].vp_pred_avail = true;
+              PAY.buf[index].vp_confident  = false;
+              PAY.buf[index].vp_value.dw   = vtage_value;
+              PAY.buf[index].vp_provider   = VP_PROVIDER_VTAGE;
+              PAY.buf[index].vp_provider_info = vtage_provider;
+           }
+        }
+
 
       // FIX_ME #4
       // Get the instruction's branch mask.

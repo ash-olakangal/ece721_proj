@@ -7,17 +7,14 @@ uint32_t PIPE_QUEUE_SIZE = 8192;
 
 //aolakan
 // value prediction
-bool predINTALU;
-bool predFPALU;
-bool predLOAD;
-
-bool vp_perfect_mode;
-
-unsigned int SVP_VPQ_SIZE;
-bool SVP_ORACLECONF;
-unsigned int SVP_NUM_INDEX;
-unsigned int SVP_NUM_TAG;
-bool SVP_CONFMAX;
+bool VP_VTAGE = false;
+unsigned int VP_VTAGE_BASE_ENTRIES = 1024;
+unsigned int VP_VTAGE_NUM_TAGGED_TABLES = 4;
+unsigned int VP_VTAGE_TAGGED_ENTRIES = 512;
+unsigned int VP_VTAGE_TAG_BITS = 10;
+unsigned int VP_VTAGE_CONF_BITS = 3;
+unsigned int VP_VTAGE_CONF_THRESHOLD = 2;
+unsigned int VP_VTAGE_PATH_HIST_BITS = 64;
 
 
 // Oracle controls.

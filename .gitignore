@@ -1,5 +1,4 @@
-build/riscv-base
-build/uarchsim
+build/*
 run/473*
 run/721*
 .*swp

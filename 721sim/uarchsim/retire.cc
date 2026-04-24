@@ -85,8 +85,41 @@ void pipeline_t::retire(size_t &instret) {
             assert(VP->head_ready());
             VP->retire_train();
          }
+	 // VTAGE always trains on committed eligible results
+	//if (VTAGE && PAY.buf[PAY.head].vp_eligible && PAY.buf[PAY.head].C_valid) {
+	//
+	//   if (PAY.buf[PAY.head].vp_provider == VP_PROVIDER_VTAGE) {
+	//      VTAGE->train_provider(PAY.buf[PAY.head].pc,
+	//                            PAY.buf[PAY.head].C_value.dw,
+	//                            PAY.buf[PAY.head].vp_correct,
+	//                            PAY.buf[PAY.head].vp_provider_info);
+	//   }
+	//   else {
+	//      VTAGE->train(PAY.buf[PAY.head].pc,
+	//                   PAY.buf[PAY.head].C_value.dw);
+	//   }
+	//}
+
+	if (VTAGE && PAY.buf[PAY.head].vp_eligible && PAY.buf[PAY.head].C_valid && IS_LOAD(PAY.buf[PAY.head].flags) && !IS_AMO(PAY.buf[PAY.head].flags)) {
+	
+	   if (PAY.buf[PAY.head].vp_provider == VP_PROVIDER_VTAGE) {
+	      VTAGE->train_provider(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw, PAY.buf[PAY.head].vp_correct, PAY.buf[PAY.head].vp_provider_info);
+	   }
+	   else {
+	      VTAGE->train(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw);
+	   }
+	}
+	
+	// Retired branch history update for VTAGE
+	if (VTAGE && IS_BRANCH(PAY.buf[PAY.head].flags)) {
+
+	   bool taken = (PAY.buf[PAY.head].next_pc != (PAY.buf[PAY.head].pc + insn_length(PAY.buf[PAY.head].inst.bits())));
+
+	   VTAGE->update_path_history(PAY.buf[PAY.head].pc, taken);
+	}
 
 
+	//VPU measurements
         if(PAY.buf[PAY.head].vp_eligible){
            vpmeas_eligible++;
 

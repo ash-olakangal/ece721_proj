@@ -50,6 +50,7 @@
 
 #include "svp_vpq.h"
 
+#include "vtage.h"
 //////////////////////////////////////////////////////////////////////////////
 
 /* instruction flags */
@@ -184,6 +185,20 @@ public:
    //proj4 addition
    bool vp_perfect_mode;
    bool eligible(payload_t *pay);
+
+   VTAGEPredictor *VTAGE;
+
+   inline bool use_perfect_vp() const {
+   return VP_PERFECT_VALUE;
+   }
+   
+   inline bool use_vtage_vp() const {
+      return (!VP_PERFECT_VALUE && VP_VTAGE);
+   }
+   
+   inline bool use_svp_vp() const {
+      return (!VP_PERFECT_VALUE);
+   }
 
    // reporting stats for proj4
    uint64_t vpmeas_ineligible;

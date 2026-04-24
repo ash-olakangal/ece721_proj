@@ -476,6 +476,25 @@ static void set_vp_svp(const char *config) {
    VP_SVP_CONFMAX = (unsigned int)confmax;
 }
 
+static void set_vp_vtage_flags(const char *config)
+{
+   uint64_t base_entries, num_tables, tagged_entries, tag_bits, conf_bits, conf_threshold, hist_bits;
+
+   if (sscanf(config, "%lu,%lu,%lu,%lu,%lu,%lu,%lu", &base_entries, &num_tables, &tagged_entries, &tag_bits, &conf_bits, &conf_threshold, &hist_bits) != 7) {
+      fprintf(stderr, "Incorrect usage of --vp-vtage=<base_entries>,<num_tables>,<tagged_entries>,<tag_bits>,<conf_bits>,<conf_threshold>,<hist_bits>\n");
+      exit(-1);
+   }
+
+   VP_VTAGE = true;
+   VP_VTAGE_BASE_ENTRIES = (unsigned int)base_entries;
+   VP_VTAGE_NUM_TAGGED_TABLES = (unsigned int)num_tables;
+   VP_VTAGE_TAGGED_ENTRIES = (unsigned int)tagged_entries;
+   VP_VTAGE_TAG_BITS = (unsigned int)tag_bits;
+   VP_VTAGE_CONF_BITS = (unsigned int)conf_bits;
+   VP_VTAGE_CONF_THRESHOLD = (unsigned int)conf_threshold;
+   VP_VTAGE_PATH_HIST_BITS = (unsigned int)hist_bits;
+}
+
 
 int main(int argc, char **argv) {
    bool debug = false;
@@ -520,6 +539,7 @@ int main(int argc, char **argv) {
    parser.option(0, "vp-perf", 1, [&](const char *s) { set_vp_perf(s); });
    parser.option(0, "vp-eligible", 1, [&](const char *s) { set_vp_eligible(s); });
    parser.option(0, "vp-svp", 1, [&](const char *s) { set_vp_svp(s); });
+   parser.option(0, "vp-vtage", 1, [&](const char *s) { set_vp_vtage_flags(s); });
 
    parser.option(0, "cp", 1, [&](const char *s) { NUM_CHECKPOINTS = atoi(s); });
 

@@ -8,19 +8,14 @@ extern unsigned int PIPE_QUEUE_SIZE;
 
 //aolakan
 //proj4 addition
-/*
-extern bool predINTALU;
-extern bool predFPALU;
-extern bool predLOAD;
-
-extern bool vp_perfect_mode;
-
-extern unsigned int SVP_VPQ_SIZE;
-extern bool SVP_ORACLECONF;
-extern unsigned int SVP_NUM_INDEX;
-extern unsigned int SVP_NUM_TAG;
-extern bool SVP_CONFMAX;
-*/
+extern bool VP_VTAGE;
+extern unsigned int VP_VTAGE_BASE_ENTRIES;
+extern unsigned int VP_VTAGE_NUM_TAGGED_TABLES;
+extern unsigned int VP_VTAGE_TAGGED_ENTRIES;
+extern unsigned int VP_VTAGE_TAG_BITS;
+extern unsigned int VP_VTAGE_CONF_BITS;
+extern unsigned int VP_VTAGE_CONF_THRESHOLD;
+extern unsigned int VP_VTAGE_PATH_HIST_BITS;
 
 // Oracle controls.
 extern bool PERFECT_BRANCH_PRED;

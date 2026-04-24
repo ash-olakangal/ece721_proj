@@ -261,6 +261,10 @@ pipeline_t::pipeline_t(
    /////////////////////////////////////////////////////////////
    // Value Prediction (SVP + VPQ)
    /////////////////////////////////////////////////////////////
+
+   VP = nullptr;
+   VTAGE = nullptr;
+
    if (!vp_perfect_mode && VPQ_SIZE > 0) {
       VP = new SVPVPQ(VPQ_SIZE,
                       num_chkpts,
@@ -268,8 +272,17 @@ pipeline_t::pipeline_t(
                       VP_SVP_TAG_BITS,
                       VP_SVP_CONFMAX);
    }
-   else {
-      VP = NULL;
+
+   if (VP_VTAGE) {
+      VTAGE = new VTAGEPredictor(
+         VP_VTAGE_BASE_ENTRIES,
+         VP_VTAGE_NUM_TAGGED_TABLES,
+         VP_VTAGE_TAGGED_ENTRIES,
+         VP_VTAGE_TAG_BITS,
+         VP_VTAGE_CONF_BITS,
+         VP_VTAGE_CONF_THRESHOLD,
+         VP_VTAGE_PATH_HIST_BITS
+      );
    }
 
    /////////////////////////////////////////////////////////////
@@ -462,6 +475,7 @@ pipeline_t::pipeline_t(
       uint64_t inst_bits = VP->instance_bits();
       uint64_t bits_per_entry = VP->bits_per_svp_entry();
       uint64_t total_bits = VP->storage_bits();
+      if (VTAGE) total_bits += VTAGE->storage_bits();  // new VTAGE
       double total_bytes = (double)total_bits / 8.0;
       double total_kb = total_bytes / 1024.0;
 
@@ -485,9 +499,7 @@ pipeline_t::pipeline_t(
               (unsigned long)inst_bits);
       fprintf(stats_log, "      -------------------------\n");
       fprintf(stats_log, "      bits/SVP entry: %lu bits\n", (unsigned long)bits_per_entry);
-      fprintf(stats_log, "   Total storage cost (bits) = (%lu SVP entries x %lu bits/SVP entry) = %lu bits\n",
-              (unsigned long)VP->num_svp_entries(),
-              (unsigned long)bits_per_entry,
+      fprintf(stats_log, "   Total storage cost (bits): VTAGE + SVP = %lu bits\n",
               (unsigned long)total_bits);
       fprintf(stats_log, "   Total storage cost (bytes) = %.2f B (%.2f KB)\n",
               total_bytes, total_kb);
@@ -564,6 +576,10 @@ pipeline_t::~pipeline_t() {
    if (VP) {
       delete VP;
       VP = NULL;
+   }
+   if (VTAGE) {
+   delete VTAGE;
+   VTAGE = nullptr;
    }
    
    fclose(this->stats_log);
