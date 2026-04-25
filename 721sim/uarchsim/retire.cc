@@ -86,26 +86,29 @@ void pipeline_t::retire(size_t &instret) {
             VP->retire_train();
          }
 
-	bool vtage_train_inst = ((IS_LOAD(PAY.buf[PAY.head].flags) && !IS_AMO(PAY.buf[PAY.head].flags)) || IS_INTALU(PAY.buf[PAY.head].flags));
+	if (use_vtage_vp() && VTAGE) {
+	   bool vtage_train_inst =
+	      ((IS_LOAD(PAY.buf[PAY.head].flags) && !IS_AMO(PAY.buf[PAY.head].flags)) ||
+	       IS_INTALU(PAY.buf[PAY.head].flags));
 	
-	if (VTAGE && PAY.buf[PAY.head].vp_eligible && PAY.buf[PAY.head].C_valid && vtage_train_inst) {
+	   if (PAY.buf[PAY.head].vp_eligible &&
+	       PAY.buf[PAY.head].C_valid &&
+	       vtage_train_inst) {
 	
-	   if (PAY.buf[PAY.head].vp_provider == VP_PROVIDER_VTAGE) {
-	      VTAGE->train_provider(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw, PAY.buf[PAY.head].vp_correct, PAY.buf[PAY.head].vp_provider_info);
+	      if (PAY.buf[PAY.head].vp_provider == VP_PROVIDER_VTAGE) {
+	         VTAGE->train_provider(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw, PAY.buf[PAY.head].vp_correct, PAY.buf[PAY.head].vp_provider_info);
+	      }
+	      else {
+	         VTAGE->train(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw);
+	      }
 	   }
-	   else {
-	      VTAGE->train(PAY.buf[PAY.head].pc, PAY.buf[PAY.head].C_value.dw);
+	
+	   // Retired branch history update for VTAGE
+	   if (IS_BRANCH(PAY.buf[PAY.head].flags)) {
+	      bool taken = (PAY.buf[PAY.head].next_pc != (PAY.buf[PAY.head].pc + insn_length(PAY.buf[PAY.head].inst.bits())));
+	      VTAGE->update_path_history(PAY.buf[PAY.head].pc, taken);
 	   }
 	}
-	
-	// Retired branch history update for VTAGE
-	if (VTAGE && IS_BRANCH(PAY.buf[PAY.head].flags)) {
-
-	   bool taken = (PAY.buf[PAY.head].next_pc != (PAY.buf[PAY.head].pc + insn_length(PAY.buf[PAY.head].inst.bits())));
-
-	   VTAGE->update_path_history(PAY.buf[PAY.head].pc, taken);
-	}
-
 
 	//VPU measurements
         if(PAY.buf[PAY.head].vp_eligible){

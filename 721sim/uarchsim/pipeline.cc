@@ -488,9 +488,7 @@ pipeline_t::pipeline_t(
 	   
 	   fprintf(stats_log, "VALUE PREDICTOR = stride (Project 4 spec. implementation)\n");
 	   fprintf(stats_log, "   VPQsize         = %u\n", VPQ_SIZE);
-	   fprintf(stats_log, "   oracleconf      = %d (%s confidence)\n",
-	           (VP_ORACLE_CONFIDENCE ? 1 : 0),
-	           (VP_ORACLE_CONFIDENCE ? "oracle" : "real"));
+	   fprintf(stats_log, "   oracleconf      = %d (%s confidence)\n", (VP_ORACLE_CONFIDENCE ? 1 : 0), (VP_ORACLE_CONFIDENCE ? "oracle" : "real"));
 	   fprintf(stats_log, "   # index bits    = %u\n", VP_SVP_INDEX_BITS);
 	   fprintf(stats_log, "   # tag bits      = %u\n", VP_SVP_TAG_BITS);
 	   fprintf(stats_log, "   confmax         = %u\n\n", VP_SVP_CONFMAX);
@@ -498,20 +496,13 @@ pipeline_t::pipeline_t(
 	   fprintf(stats_log, "COST ACCOUNTING\n");
 	   fprintf(stats_log, "   One SVP entry:\n");
 	   fprintf(stats_log, "      tag           : %3u bits  // num_tag_bits\n", VP_SVP_TAG_BITS);
-	   fprintf(stats_log, "      conf          : %3lu bits  // formula: (uint64_t)ceil(log2((double)(confmax+1)))\n",
-	           (unsigned long)conf_bits);
+	   fprintf(stats_log, "      conf          : %3lu bits  // formula: (uint64_t)ceil(log2((double)(confmax+1)))\n", (unsigned long)conf_bits);
 	   fprintf(stats_log, "      retired_value : %3d bits  // RISCV64 integer size.\n", 64);
 	   fprintf(stats_log, "      stride        : %3d bits  // RISCV64 integer size. Competition opportunity: truncate stride to far fewer bits based on stride distribution of stride-predictable instructions.\n", 64);
-	   fprintf(stats_log, "      instance ctr  : %3lu bits  // formula: (uint64_t)ceil(log2((double)VPQsize))\n",
-	           (unsigned long)inst_bits);
+	   fprintf(stats_log, "      instance ctr  : %3lu bits  // formula: (uint64_t)ceil(log2((double)VPQsize))\n", (unsigned long)inst_bits);
 	   fprintf(stats_log, "      -------------------------\n");
 	   fprintf(stats_log, "      bits/SVP entry: %lu bits\n", (unsigned long)bits_per_entry);
-	   fprintf(stats_log, "   SVP storage cost (bits) = (%lu SVP entries x %lu bits/SVP entry) = %lu bits\n",
-	           (unsigned long)VP->num_svp_entries(),
-	           (unsigned long)bits_per_entry,
-	           (unsigned long)svp_bits);
-	   fprintf(stats_log, "   SVP storage cost (bytes) = %.2f B (%.2f KB)\n",
-	           svp_bytes, svp_kb);
+	   fprintf(stats_log, "   Total storage cost (bits) = (%lu SVP entries x %lu bits/SVP entry) = %lu bits\n", (unsigned long)VP->num_svp_entries(), (unsigned long)bits_per_entry, (unsigned long)svp_bits);
 	   
 	   if (VTAGE) {
 	      fprintf(stats_log, "   VTAGE storage = %lu bits (%.2f KB)\n",
@@ -523,8 +514,6 @@ pipeline_t::pipeline_t(
 	              total_bytes, total_kb);
 	   }
 	   else {
-	      fprintf(stats_log, "   Total storage cost (bits) = %lu bits\n",
-	              (unsigned long)svp_bits);
 	      fprintf(stats_log, "   Total storage cost (bytes) = %.2f B (%.2f KB)\n",
 	              svp_bytes, svp_kb);
 	   }
