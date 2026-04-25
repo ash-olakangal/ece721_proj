@@ -74,20 +74,6 @@ void pipeline_t::execute(unsigned int lane_number) {
 
 	    //aolakan - addition of value prediction condition
             // FIX_ME #13 BEGIN
-	    //if (hit && PAY.buf[index].C_valid) {
-  	    //     IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
-  	    //     REN->set_ready(PAY.buf[index].C_phys_reg);
-  	    //     REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
-	    //}
-	    //if (hit && PAY.buf[index].C_valid) {
-	    //  if (!PAY.buf[index].vp_used) {
-	    //     IQ.wakeup(PAY.buf[index].C_phys_reg, true /* register dependency */);
-	    //     REN->set_ready(PAY.buf[index].C_phys_reg);
-	    //  }
-	    //  REN->write(PAY.buf[index].C_phys_reg, PAY.buf[index].C_value.dw);
-	    //}
-	    //
-
 	    //aolakan - task5
 
 	    if (hit && PAY.buf[index].C_valid) {
